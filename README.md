@@ -18,9 +18,9 @@ The Port Scanner Framework is a Python-based tool for conducting vulnerability a
 
 1. Clone the repository:
 
-   ```shell
-   git clone https://github.com/lilocruz/portscanner-framework
-   ```
+```shell
+git clone https://github.com/lilocruz/portscanner-framework
+```
 
 2. Install the dependencies
 ```shell
