@@ -30,14 +30,24 @@ def main():
     # Add the target argument
     parser.add_argument('target', type=str, help='Target IP address or hostname to scan')
 
-    # Add the ports argument as a list of integers
-    parser.add_argument('ports', type=int, nargs='+', help='Ports to scan (space-separated)')
+    # Add the ports argument
+    parser.add_argument('ports', nargs='+', help='Ports to scan (range, multiple, or single)')
 
     # Parse the command-line arguments
     args = parser.parse_args()
 
+    # Parse the ports argument as a range, multiple, or single ports
+    ports = []
+    for port in args.ports:
+        if '-' in port:
+            start, end = port.split('-')
+            ports.extend(range(int(start), int(end) + 1))
+        else:
+            ports.append(int(port))
+
     # Perform the scan
-    scan(args.target, args.ports)
+    scan(args.target, ports)
 
 if __name__ == "__main__":
     main()
+
