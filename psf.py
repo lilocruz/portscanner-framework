@@ -44,10 +44,10 @@ def scan_ports(target, ports):
                     vulnerability['cve_description'] = cve_description
 
         # Store detected OS
-        detected_os = ''
+        os_info = []
         if 'osmatch' in host:
-            os_match = host['osmatch'][0]
-            detected_os = os_match['name']
+            for os_match in host['osmatch']:
+                os_info.append([os_match['name'], os_match['accuracy']])
 
         # Store detected vulnerabilities
         if 'script' in host:
@@ -62,8 +62,10 @@ def scan_ports(target, ports):
                     results.append(['', '', '', f'Vulnerable: {script_id}'])
 
         # Add detected OS to the results
-        if detected_os:
-            results.append(['', '', '', f'Detected OS: {detected_os}'])
+        if os_info:
+            print("Detected OS:")
+            print(tabulate(os_info, headers=["OS", "Accuracy"], tablefmt="fancy_grid"))
+
 
     return results
 
@@ -99,7 +101,7 @@ def main():
 
     # Print the scan results in a tabular format
     print('Port Scan Results:')
-    print(tabulate(port_scan_results, headers=['Port', 'Service', 'Status'], tablefmt='presto'))
+    print(tabulate(port_scan_results, headers=['Port', 'Service', 'Status'], tablefmt='fancy_grid'))
 
 if __name__ == "__main__":
     main()
