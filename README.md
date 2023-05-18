@@ -44,39 +44,14 @@ The scan results will be displayed in the console, providing information about o
 
 ## Sample Output
 
-```json
-{
-    "target": "192.168.0.1",
-    "port_scan": {
-        "target": "192.168.0.1",
-        "open_ports": [
-            {
-                "port": 80,
-                "service": "http"
-            },
-            {
-                "port": 443,
-                "service": "https"
-            }
-        ],
-        "detected_os": "Linux",
-        "vulnerabilities": []
-    },
-    "web_scan": {
-        "target": "192.168.0.1",
-        "web_scan_results": "Nikto output...",
-        "vulnerabilities": [
-            {
-                "name": "Cross-Site Scripting (XSS)",
-                "description": "..."
-            },
-            {
-                "name": "Directory Listing Enabled",
-                "description": "..."
-            }
-        ]
-    }
-}
+```tabulate
+Port Scan Results:
++------+---------+--------+
+| Port | Service | Status |
++------+---------+--------+
+|  80  |  http   |  Open  |
+| 443  |  https  |  Open  |
++------+---------+--------+
 ```
 
 ## License
