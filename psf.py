@@ -7,10 +7,14 @@ import nmap
 import os
 from colorama import Fore, Style
 from tabulate import tabulate
+from CVE.lookup_cve import CVELookup
 
 def scan_ports(target, ports):
     # Create an instance of the Nmap PortScanner
     scanner = nmap.PortScanner()
+
+    # Create an instance of CVELookup
+    cve_lookup = CVELookup()
 
     # Convert the ports argument to a comma-separated string
     ports_str = ','.join(str(port) for port in ports)
@@ -30,6 +34,14 @@ def scan_ports(target, ports):
             port_info = host['tcp'][port]
             if port_info['state'] == 'open':
                 results.append([port, port_info['name'], 'Open'])
+        
+        for result in results:
+            if 'vulnerability' in result:
+                vulnerability = result['vulnerability']
+                cve_id = vulnerability['cve_id']
+                cve_description = cve_lookup.lookup_cve(cve_id)
+                if cve_description:
+                    vulnerability['cve_description'] = cve_description
 
         # Store detected OS
         detected_os = ''
