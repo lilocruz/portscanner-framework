@@ -3,10 +3,10 @@
 # Copyright: GPLv3+
 
 import argparse
-import json
 import nmap
 import os
 from colorama import Fore, Style
+from tabulate import tabulate
 
 def scan_ports(target, ports):
     # Create an instance of the Nmap PortScanner
@@ -18,13 +18,8 @@ def scan_ports(target, ports):
     # Perform a TCP scan on the target and specified ports, with OS detection and script scanning
     scanner.scan(target, arguments=f'-p {ports_str} -sV -O --script vulners,smb-vuln-*')
 
-    # Create a dictionary to store scan results
-    results = {
-        'target': target,
-        'open_ports': [],
-        'detected_os': '',
-        'vulnerabilities': []
-    }
+    # Create a list to store scan results
+    results = []
 
     # Get scan results
     if target in scanner.all_hosts():
@@ -34,12 +29,13 @@ def scan_ports(target, ports):
         for port in host['tcp']:
             port_info = host['tcp'][port]
             if port_info['state'] == 'open':
-                results['open_ports'].append({'port': port, 'service': port_info['name']})
+                results.append([port, port_info['name'], 'Open'])
 
         # Store detected OS
+        detected_os = ''
         if 'osmatch' in host:
             os_match = host['osmatch'][0]
-            results['detected_os'] = os_match['name']
+            detected_os = os_match['name']
 
         # Store detected vulnerabilities
         if 'script' in host:
@@ -51,7 +47,11 @@ def scan_ports(target, ports):
                         'script_id': script_id,
                         'output': script_output
                     }
-                    results['vulnerabilities'].append(vulnerability)
+                    results.append(['', '', '', f'Vulnerable: {script_id}'])
+
+        # Add detected OS to the results
+        if detected_os:
+            results.append(['', '', '', f'Detected OS: {detected_os}'])
 
     return results
 
@@ -85,15 +85,9 @@ def main():
     # Perform the port scan
     port_scan_results = scan_ports(args.target, ports)
 
-    # Create a dictionary to store overall scan results
-    scan_results = {
-        'target': args.target,
-        'port_scan': port_scan_results
-    }
-
-    # Convert scan results to JSON format with enhanced structure
-    json_output = json.dumps(scan_results, indent=4)
-    print(json_output)
+    # Print the scan results in a tabular format
+    print('Port Scan Results:')
+    print(tabulate(port_scan_results, headers=['Port', 'Service', 'Status'], tablefmt='presto'))
 
 if __name__ == "__main__":
     main()
