@@ -4,8 +4,8 @@
 
 import argparse
 import json
-import os
 import nmap
+import os
 from colorama import Fore, Style
 from tabulate import tabulate
 
@@ -50,45 +50,52 @@ def scan(target, ports, os_detection):
             print(tabulate(os_info, headers=["OS", "Accuracy"], tablefmt="fancy_grid"))
 
 def main():
-
-    # Validate the port scanner is running as root
-    if os.getuid() != 0:
-        print("The Port Scanner Framework requires root privileges. Please run it as root or use sudo.")
+    # Check if the scanner is running as root
+    if os.geteuid() != 0:
+        print("The port scanner framework requires root privileges to perform certain operations. Please run it as root or use sudo.")
         return
+
     # Create the command-line argument parser
     parser = argparse.ArgumentParser(description='Port Scanner Framework by Michael Cruz Sanchez')
 
     # Add the JSON file argument
     parser.add_argument('-f', '--file', type=str, help='JSON file containing targets, ports, and OS parameters')
 
+    # Add optional target and ports arguments
+    parser.add_argument('-t', '--target', type=str, help='Target IP address')
+    parser.add_argument('-p', '--ports', type=str, help='Ports to scan (e.g., 80,443 or 1-1024)')
+
     # Parse the command-line arguments
     args = parser.parse_args()
 
-    # Read JSON file
-    with open(args.file) as json_file:
-        data = json.load(json_file)
+    # Check if both JSON file and options are provided
+    if args.file and (args.target or args.ports):
+        print("Please provide either a JSON file or individual target/ports options, not both.")
+        return
 
-    # Iterate over targets in the JSON data
-    for item in data:
-        target = item['target']
-        ports = item['ports']
-        os_detection = item.get('os_detection', False)
-
+    # Read JSON file if provided
+    if args.file:
+        with open(args.file) as json_file:
+            data = json.load(json_file)
+        
+        # Iterate over targets in the JSON data
+        for item in data:
+            target = item['target']
+            ports = item['ports']
+            os_detection = item.get('os_detection', False)
+            print(f"Scanning target: {target}\n")
+            scan(target, ports, os_detection)
+            print("\n")
+    # Otherwise, use individual target/ports options if provided
+    elif args.target and args.ports:
+        target = args.target
+        ports = [int(port) for port in args.ports.split(',')]
+        os_detection = False  # Modify this as needed
         print(f"Scanning target: {target}\n")
-
-       # Expand port ranges if necessary
-        expanded_ports = []
-        for port in ports:
-            if '-' in str(port):
-                start_port, end_port = map(int, port.split('-'))
-                expanded_ports.extend(range(start_port, end_port + 1))
-            else:
-                expanded_ports.append(int(port))
-
-        # Perform the scan
-        scan(target, expanded_ports, os_detection)
-
+        scan(target, ports, os_detection)
         print("\n")
+    else:
+        print("Please provide a JSON file or individual target/ports options.")
 
 if __name__ == "__main__":
     main()
