@@ -50,8 +50,29 @@ pip install -r requirements.txt
 ```
 
 4. Run the scanner
+
 ```shell
-python psf.py -f file.json
+sudo python psf.py -h
+usage: psf.py [-h] [-f FILE] [-t TARGET] [-p PORTS]
+
+Port Scanner Framework by Michael Cruz Sanchez
+
+options:
+  -h, --help            show this help message and exit
+  -f FILE, --file FILE  JSON file containing targets, ports, and OS parameters
+  -t TARGET, --target TARGET
+                        Target IP address
+  -p PORTS, --ports PORTS
+                        Ports to scan (e.g., 80,443 or 1-1024)
+```
+
+```shell
+sudo python psf.py -f file.json
+```
+
+```shell
+sudo python psf.py -t 192.168.1.2 -p 22
+sudo python psf.py -t 192.168.1.2 -p 1-100
 ```
 
 5. View the scan results
