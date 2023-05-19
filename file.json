@@ -1,11 +1,12 @@
 [
     {
       "target": "10.0.0.228",
-      "ports": [22, 80, 443]
+      "ports": ["1-100"],
+      "os_detection": true
     },
     {
       "target": "10.0.0.176",
-      "ports": [22, 80],
+      "ports": ["1-100"],
       "os_detection": true
     }
   ]

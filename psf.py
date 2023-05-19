@@ -4,6 +4,7 @@
 
 import argparse
 import json
+import os
 import nmap
 from colorama import Fore, Style
 from tabulate import tabulate
@@ -49,11 +50,16 @@ def scan(target, ports, os_detection):
             print(tabulate(os_info, headers=["OS", "Accuracy"], tablefmt="fancy_grid"))
 
 def main():
+
+    # Validate the port scanner is running as root
+    if os.getuid() != 0:
+        print("The Port Scanner Framework requires root privileges. Please run it as root or use sudo.")
+        return
     # Create the command-line argument parser
-    parser = argparse.ArgumentParser(description='Vulnerability Scanner')
+    parser = argparse.ArgumentParser(description='Port Scanner Framework by Michael Cruz Sanchez')
 
     # Add the JSON file argument
-    parser.add_argument('file', type=str, help='JSON file containing targets, ports, and OS parameters')
+    parser.add_argument('-f', '--file', type=str, help='JSON file containing targets, ports, and OS parameters')
 
     # Parse the command-line arguments
     args = parser.parse_args()
@@ -70,8 +76,17 @@ def main():
 
         print(f"Scanning target: {target}\n")
 
+       # Expand port ranges if necessary
+        expanded_ports = []
+        for port in ports:
+            if '-' in str(port):
+                start_port, end_port = map(int, port.split('-'))
+                expanded_ports.extend(range(start_port, end_port + 1))
+            else:
+                expanded_ports.append(int(port))
+
         # Perform the scan
-        scan(target, ports, os_detection)
+        scan(target, expanded_ports, os_detection)
 
         print("\n")
 
