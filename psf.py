@@ -3,105 +3,77 @@
 # Copyright: GPLv3+
 
 import argparse
+import json
 import nmap
-import os
 from colorama import Fore, Style
 from tabulate import tabulate
-from CVE.lookup_cve import CVELookup
 
-def scan_ports(target, ports):
+def scan(target, ports, os_detection):
     # Create an instance of the Nmap PortScanner
     scanner = nmap.PortScanner()
-
-    # Create an instance of CVELookup
-    cve_lookup = CVELookup()
 
     # Convert the ports argument to a comma-separated string
     ports_str = ','.join(str(port) for port in ports)
 
-    # Perform a TCP scan on the target and specified ports, with OS detection and script scanning
-    scanner.scan(target, arguments=f'-p {ports_str} -sV -O --script vulners,smb-vuln-*')
-
-    # Create a list to store scan results
-    results = []
+    # Perform a TCP scan on the target and specified ports, with OS detection if enabled
+    scanner.scan(target, arguments=f'-p {ports_str} -sV {"-O" if os_detection else ""}')
 
     # Get scan results
     if target in scanner.all_hosts():
         host = scanner[target]
 
-        # Store open ports
+        # Prepare open ports data for tabulate
+        open_ports = []
         for port in host['tcp']:
             port_info = host['tcp'][port]
             if port_info['state'] == 'open':
-                results.append([port, port_info['name'], 'Open'])
-        
-        for result in results:
-            if 'vulnerability' in result:
-                vulnerability = result['vulnerability']
-                cve_id = vulnerability['cve_id']
-                cve_description = cve_lookup.lookup_cve(cve_id)
-                if cve_description:
-                    vulnerability['cve_description'] = cve_description
+                open_ports.append([port, port_info['name']])
 
-        # Store detected OS
+        # Prepare detected OS data
         os_info = []
-        if 'osmatch' in host:
+        if os_detection and 'osmatch' in host:
             for os_match in host['osmatch']:
                 os_info.append([os_match['name'], os_match['accuracy']])
 
-        # Store detected vulnerabilities
-        if 'script' in host:
-            scripts = host['script']
-            for script_id in scripts:
-                script_output = scripts[script_id]
-                if 'VULNERABLE' in script_output:
-                    vulnerability = {
-                        'script_id': script_id,
-                        'output': script_output
-                    }
-                    results.append(['', '', '', f'Vulnerable: {script_id}'])
+        # Display scan results
+        if open_ports:
+            print(f"Open ports found on {target}:\n")
+            print(tabulate(open_ports, headers=["Port", "Service"], tablefmt="fancy_grid"))
+            print()
+        else:
+            print(f"No open ports found on {target}.")
 
-        # Add detected OS to the results
+        # Display detected OS
         if os_info:
-            print("Detected OS:")
+            print("Detected OS:\n")
             print(tabulate(os_info, headers=["OS", "Accuracy"], tablefmt="fancy_grid"))
 
-
-    return results
-
 def main():
-    # Check if script is running with root privileges
-    if os.geteuid() != 0:
-        print("The port scanner framework requires root privileges to perform certain scans. Please run it as root or with sudo.")
-        return
-
     # Create the command-line argument parser
-    parser = argparse.ArgumentParser(description='Port Scanner Framework by Michael Cruz Sanchez')
+    parser = argparse.ArgumentParser(description='Vulnerability Scanner')
 
-    # Add the target argument
-    parser.add_argument('target', type=str, help='Target IP address or hostname to scan')
-
-    # Add the ports argument
-    parser.add_argument('ports', nargs='+', help='Ports to scan (range, multiple, or single)')
+    # Add the JSON file argument
+    parser.add_argument('file', type=str, help='JSON file containing targets, ports, and OS parameters')
 
     # Parse the command-line arguments
     args = parser.parse_args()
 
-    # Parse the ports argument as a range, multiple, or single ports
-    ports = []
-    for port in args.ports:
-        if '-' in port:
-            start, end = port.split('-')
-            ports.extend(range(int(start), int(end) + 1))
-        else:
-            ports.append(int(port))
+    # Read JSON file
+    with open(args.file) as json_file:
+        data = json.load(json_file)
 
-    # Perform the port scan
-    port_scan_results = scan_ports(args.target, ports)
+    # Iterate over targets in the JSON data
+    for item in data:
+        target = item['target']
+        ports = item['ports']
+        os_detection = item.get('os_detection', False)
 
-    # Print the scan results in a tabular format
-    print('Port Scan Results:')
-    print(tabulate(port_scan_results, headers=['Port', 'Service', 'Status'], tablefmt='fancy_grid'))
+        print(f"Scanning target: {target}\n")
+
+        # Perform the scan
+        scan(target, ports, os_detection)
+
+        print("\n")
 
 if __name__ == "__main__":
     main()
