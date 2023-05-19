@@ -27,16 +27,26 @@ git clone https://github.com/lilocruz/portscanner-framework
 pip install -r requirements.txt
 ```
 
-3. Run the scanner
-```shell
-python psf.py <target> <ports>
+3. Create a JSON file with the targets to scan
+```json
+[
+    {
+      "target": "<IP>",
+      "ports": [22, 80, 443]
+    },
+    {
+      "target": "<IP>",
+      "ports": [22, 80],
+      "os_detection": true
+    }
+  ]
 ```
 
-Replace <target> with the IP address or hostname of the target system, and <ports> with the ports to scan (range, multiples, or single). For example:
+Replace <IP> with the targets IP addresses.
 
+3. Run the scanner
 ```shell
-python psf.py 192.168.0.1 80 443
-python psf.py example.com 1-100
+python psf.py file.json
 ```
 
 4. View the scan results
@@ -45,13 +55,37 @@ The scan results will be displayed in the console, providing information about o
 ## Sample Output
 
 ```tabulate
-Port Scan Results:
-+------+---------+--------+
-| Port | Service | Status |
-+------+---------+--------+
-|  80  |  http   |  Open  |
-| 443  |  https  |  Open  |
-+------+---------+--------+
+Scanning target: <IP>
+
+Open ports found on <IP>:
+
+╒════════╤═══════════╕
+│   Port │ Service   │
+╞════════╪═══════════╡
+│     22 │ ssh       │
+├────────┼───────────┤
+│     80 │ http      │
+╘════════╧═══════════╛
+
+
+
+Scanning target: <IP>
+
+Open ports found on <IP>:
+
+╒════════╤═══════════╕
+│   Port │ Service   │
+╞════════╪═══════════╡
+│     22 │ ssh       │
+╘════════╧═══════════╛
+
+Detected OS:
+
+╒══════════════════╤════════════╕
+│ OS               │   Accuracy │
+╞══════════════════╪════════════╡
+│ Linux 4.15 - 5.6 │        100 │
+╘══════════════════╧════════════╛
 ```
 
 ## License
