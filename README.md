@@ -4,10 +4,9 @@ The Port Scanner Framework is a Python-based tool for conducting vulnerability a
 
 ## Features
 
-- Port scanning: Scan specified ports on a target system to identify open ports and associated services.
+- Port scanning: Scan the targets based on a JSON file.
 - OS detection: Detect the operating system running on the target system.
 - Nmap scripts: Utilize Nmap scripts (vulners, smb-vuln-*) to identify known vulnerabilities.
-- JSON output: Generate scan results in JSON format for further analysis.
 
 ## Prerequisites
 
